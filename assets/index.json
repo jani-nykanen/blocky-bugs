@@ -1,0 +1,17 @@
+{
+    "bitmapPath" : "assets/bitmaps/",
+    "bitmaps" : [
+
+    ],
+
+    "samplePath" : "assets/audio/",
+    "samples" : [
+
+    ],
+
+    "tilemapPath" : "assets/tilemaps/",
+    "tilemaps" : [
+
+    ]
+}
+
