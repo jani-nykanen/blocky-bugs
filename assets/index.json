@@ -1,7 +1,9 @@
 {
     "bitmapPath" : "assets/bitmaps/",
     "bitmaps" : [
-
+        {"name": "background", "path": "background.png"},
+        {"name": "tileset", "path": "tileset.png"},
+        {"name": "woods", "path": "woods.png"}
     ],
 
     "samplePath" : "assets/audio/",
@@ -11,7 +13,7 @@
 
     "tilemapPath" : "assets/tilemaps/",
     "tilemaps" : [
-
+        {"name": "1", "path": "1.tmx"}
     ]
 }
 

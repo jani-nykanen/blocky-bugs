@@ -60,12 +60,16 @@ export class Canvas {
 
         this.canvas.setAttribute(
             "style", 
-            "position: absolute; top: 0; left: 0; z-index: -1;");
+            "position: absolute; top: 0; left: 0; z-index: -1;" + 
+            "image-rendering: optimizeSpeed;" + 
+            "image-rendering: pixelated;" +
+            "image-rendering: -moz-crisp-edges;"
+            );
         cdiv.appendChild(this.canvas);
         document.body.appendChild(cdiv);
 
         this.ctx = this.canvas.getContext("2d");
-        this.ctx.imageSmoothingEnabled = true;
+        this.ctx.imageSmoothingEnabled = false;
 
         this.resize(window.innerWidth, window.innerHeight);
     }
