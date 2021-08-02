@@ -21,6 +21,9 @@ export class GameScene implements Scene {
     public redraw(canvas : Canvas) {
 
         canvas.clear(170, 170, 170);
+
+        canvas.drawText(canvas.getBitmap("font"), "HELLO\nWORLD!",
+            1, 1, -4, -2);
     }
 
 

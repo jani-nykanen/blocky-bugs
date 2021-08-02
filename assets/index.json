@@ -1,7 +1,9 @@
 {
     "bitmapPath" : "assets/bitmaps/",
     "bitmaps" : [
-
+        {"name": "blocks", "path": "blocks.png"},
+        {"name": "font", "path": "font.png"},
+        {"name": "tileset", "path": "tileset.png"}
     ],
 
     "samplePath" : "assets/audio/",
