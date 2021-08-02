@@ -1,7 +1,7 @@
 import { Canvas } from "./core/canvas.js";
 import { CoreEvent } from "./core/core.js";
-import { negMod } from "./core/mathext.js";
 import { Tilemap } from "./core/tilemap.js";
+import { PlayerBlock } from "./player.js";
 
 
 const MAX_STACK_SIZE = 64;
@@ -28,18 +28,14 @@ export class Stage {
     public readonly width : number;
     public readonly height : number;
 
-    // We do not allow unlimited stack for obvious
-    // reasons, so we need an ability the first element
-    // of the stack, meaning it is not really a stack
-    // at all!
     private stateStack : Array<Array<number>>;
-    private stackStart : number;
-    
     private activeState : Array<number>;
 
     private baseMap : Tilemap;
 
     private wallMap : Array<TileWallData>;
+
+    private players : Array<PlayerBlock>;
 
 
     constructor(index : number, event : CoreEvent) {
@@ -50,12 +46,14 @@ export class Stage {
         this.height = this.baseMap.height;
 
         this.activeState = this.baseMap.cloneLayer(0);
-        this.stateStack = new Array<Array<number>> (MAX_STACK_SIZE);
-        this.stackStart = 0;
+        this.stateStack = new Array<Array<number>> ();
 
         this.wallMap = new Array<TileWallData> (this.width*this.height)
             .fill(null);
         this.computeWallMap();
+
+        this.players = new Array<PlayerBlock> ();
+        this.parsePlayers();
     }
 
 
@@ -65,6 +63,21 @@ export class Stage {
             return def;
 
         return this.activeState[y * this.width + x];
+    }
+
+
+    private parsePlayers() {
+
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                if (this.getTile(x, y) == 2) {
+
+                    this.players.push(new PlayerBlock(x, y));
+                }
+            }
+        }
     }
 
 
@@ -196,7 +209,10 @@ export class Stage {
 
     public update(event : CoreEvent) {
 
-        // ...
+        for (let p of this.players) {
+
+            p.update(this, event);
+        }
     }
 
 
@@ -369,6 +385,11 @@ export class Stage {
                 }
             }
         }
+
+        for (let p of this.players) {
+
+            p.draw(canvas, shadow);
+        }
     }
 
 
@@ -379,5 +400,37 @@ export class Stage {
 
         this.drawActiveLayer(canvas, true);
         this.drawActiveLayer(canvas, false);
+    }
+
+
+    public isSolid(x : number, y : number, ignoreBlocks = false) {
+
+        const SOLID_TILES_BASE = [1, 2, 3, 4, 5, 6];
+        const SOLID_TILES_IGNORE_BLOCKS = [1, 2];
+
+        return (ignoreBlocks ?
+                SOLID_TILES_IGNORE_BLOCKS : 
+                SOLID_TILES_BASE)
+                .includes(this.getTile(x, y), 0); 
+    }
+
+
+    public setTile(x : number, y : number, value : number) {
+
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height)
+            return;
+
+        this.activeState[y * this.width + x] = value;
+    }
+
+
+    public checkPlayerOverlay(x : number, y : number) {
+
+        let id = this.getTile(x, y, 0);
+
+        if (id == 3) {
+
+            this.setTile(x, y, 0);
+        }
     }
 }

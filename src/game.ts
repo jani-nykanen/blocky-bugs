@@ -1,6 +1,6 @@
 import { Canvas } from "./core/canvas.js";
 import { CoreEvent, Scene } from "./core/core.js";
-import { Stage } from "./stages.js";
+import { Stage } from "./stage.js";
 
 
 export class GameScene implements Scene {
