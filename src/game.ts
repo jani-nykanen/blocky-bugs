@@ -21,9 +21,6 @@ export class GameScene implements Scene {
     public redraw(canvas : Canvas) {
 
         canvas.clear(170, 170, 170);
-
-        canvas.drawBitmap(canvas.getBitmap("background"), 0, 0);
-        canvas.drawBitmap(canvas.getBitmap("woods"), 0, 32);
     }
 
 
