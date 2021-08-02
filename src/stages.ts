@@ -1,0 +1,303 @@
+import { Canvas } from "./core/canvas.js";
+import { CoreEvent } from "./core/core.js";
+import { negMod } from "./core/mathext.js";
+import { Tilemap } from "./core/tilemap.js";
+
+
+const MAX_STACK_SIZE = 64;
+
+
+class TileWallData {
+
+    public srcx : Array<number>;
+    public srcy : Array<number>;
+
+
+    constructor() {
+
+        this.srcx = (new Array<number> (4)).fill(0);
+        this.srcy = (new Array<number> (4)).fill(0);
+    }
+}
+
+
+
+export class Stage {
+
+
+    public readonly width : number;
+    public readonly height : number;
+
+    // We do not allow unlimited stack for obvious
+    // reasons, so we need an ability the first element
+    // of the stack, meaning it is not really a stack
+    // at all!
+    private stateStack : Array<Array<number>>;
+    private stackStart : number;
+    
+    private activeState : Array<number>;
+
+    private baseMap : Tilemap;
+
+    private wallMap : Array<TileWallData>;
+
+
+    constructor(index : number, event : CoreEvent) {
+
+        this.baseMap = event.getTilemap(String(index));
+
+        this.width = this.baseMap.width;
+        this.height = this.baseMap.height;
+
+        this.activeState = this.baseMap.cloneLayer(0);
+        this.stateStack = new Array<Array<number>> (MAX_STACK_SIZE);
+        this.stackStart = 0;
+
+        this.wallMap = new Array<TileWallData> (this.width*this.height)
+            .fill(null);
+        this.computeWallMap();
+    }
+
+
+    private getTile(x : number, y : number) : number {
+
+        return this.activeState[negMod(y, this.height) * this.width + negMod(x, this.width) ];
+    }
+
+
+    private computeWallMapTile(dx : number, dy : number) : TileWallData {
+
+        let t = new TileWallData();
+
+        let x : number;
+        let y : number;
+        let i : number;
+
+        let neighborhood = new Array<boolean> (9);
+
+        for (i = 0; i < 4; ++ i) {
+
+            t.srcx[i] = (i % 2);
+            t.srcy[i] = (i / 2);
+        }
+
+        for (x = 0; x < 3; ++ x) {
+
+            for (y = 0; y < 3; ++ y) {
+    
+                neighborhood[y * 3 + x] = 
+                    this.getTile(dx + x - 1, dy + y - 1) == 1;
+            }
+        }
+    
+        // Bottom
+        if (!neighborhood[7]) {
+    
+            if (neighborhood[3]) 
+                t.srcx[2] = 2;
+            if (neighborhood[5]) 
+                t.srcx[3] = 2;
+        }
+    
+        // Top
+        if (!neighborhood[1]) {
+    
+            if (neighborhood[3]) 
+                t.srcx[0] = 2;
+            if (neighborhood[5]) 
+                t.srcx[1] = 2;
+        }
+    
+        // Right
+        if (!neighborhood[5]) {
+    
+            t.srcy[1] = 1;
+            t.srcy[3] = 1;
+    
+            t.srcx[1] = 3;
+            t.srcx[3] = 3;
+    
+            if (!neighborhood[1]) {
+    
+                t.srcy[1] = 0;
+                t.srcx[1] = 1;
+            }
+    
+            if (!neighborhood[7]) {
+    
+                t.srcy[3] = 1;
+                t.srcx[3] = 1;
+            }
+        }
+    
+        // Left
+        if (!neighborhood[3]) {
+    
+            t.srcy[0] = 0;
+            t.srcy[2] = 0;
+    
+            t.srcx[0] = 3;
+            t.srcx[2] = 3;
+    
+            if (!neighborhood[1]) {
+    
+                t.srcy[0] = 0;
+                t.srcx[0] = 0;
+            }
+    
+            if (!neighborhood[7]) {
+    
+                t.srcy[2] = 1;
+                t.srcx[2] = 0;
+            }
+        }
+    
+        // "Empty" corners
+        // (it looks like these might be non-integer without | 0
+        // for some weird, *weird* reason)
+        if (neighborhood[1] && neighborhood[3]) {
+    
+            t.srcx[0] = (4 + 2 * Number(neighborhood[0])) | 0;
+        }
+        if (neighborhood[1] && neighborhood[5]) {
+    
+            t.srcx[1] = (5 + 2 * Number(neighborhood[2])) | 0;
+        }
+        if (neighborhood[7] && neighborhood[3]) {
+    
+            t.srcx[2] = (4 + 2 * Number(neighborhood[6])) | 0;
+        }
+        if (neighborhood[7] && neighborhood[5]) {
+    
+            t.srcx[3] = (5 + 2 * Number(neighborhood[8])) | 0;
+        }
+        
+        return t;
+    }
+
+
+    private computeWallMap() {
+
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                if (this.getTile(x, y) == 1) {
+
+                    this.wallMap[y * this.width + x] = this.computeWallMapTile(x, y);
+                }
+            }
+        }
+    }
+
+
+    public update(event : CoreEvent) {
+
+        // ...
+    }
+
+
+    private drawTile(canvas : Canvas, bmp : HTMLImageElement,
+        tile : TileWallData, dx : number, dy : number) {
+
+        let sx : number;
+        let sy : number;
+
+        for (let y = 0; y < 2; ++ y) {
+
+            for (let x = 0; x < 2; ++ x) {
+
+                sx = tile.srcx[y*2 + x] | 0;
+                sy = tile.srcy[y*2 + x] | 0;
+
+                canvas.drawBitmapRegion(bmp,
+                    sx*4, sy*4, 4, 4,
+                    dx + x*4, dy + y*4);
+            }
+        }
+    }
+
+
+    private drawStaticLayer(canvas : Canvas) {
+
+        let tile : TileWallData;
+        let bmp = canvas.getBitmap("tileset");
+
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                tile = this.wallMap[y * this.width + x];
+                if (tile != null) {
+
+                    this.drawTile(canvas, bmp,
+                        tile, x*8, y*8);
+                }
+                else {
+
+                    canvas.drawBitmapRegion(bmp,
+                       Number(x % 2 == y % 2) * 8, 8, 8, 8,
+                       x*8, y*8);
+                }
+            }
+        }
+    }
+
+
+    private drawShadowLayer(canvas : Canvas) {
+
+        let bmp = canvas.getBitmap("tileset");
+
+        canvas.setGlobalAlpha(0.33);
+
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                if (this.getTile(x, y) == 1) continue;
+
+
+                if (this.getTile(x-1, y-1) == 1) {
+
+                    canvas.drawBitmapRegion(bmp,
+                        16, 8, 4, 4, x*8, y*8);
+                }
+                else {
+
+                    if (this.getTile(x-1, y) == 1) {
+
+                        canvas.drawBitmapRegion(bmp,
+                            20, 8, 4, 4, x*8, y*8);
+                    }
+
+                    if (this.getTile(x, y-1) == 1) {
+
+                        canvas.drawBitmapRegion(bmp,
+                            16, 12, 4, 4, x*8, y*8);
+                    }
+                }
+
+
+                if (this.getTile(x-1, y) == 1) {
+
+                    canvas.drawBitmapRegion(bmp,
+                        16, 8, 4, 4, x*8, y*8 + 4);
+                }
+                if (this.getTile(x, y-1) == 1) {
+
+                    canvas.drawBitmapRegion(bmp,
+                        16, 8, 4, 4, x*8 + 4, y*8);
+                }
+            }
+        }
+
+        canvas.setGlobalAlpha();
+    }
+
+
+    public draw(canvas : Canvas) {
+
+        this.drawStaticLayer(canvas);
+        this.drawShadowLayer(canvas);
+    }
+}

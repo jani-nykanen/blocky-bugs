@@ -11,9 +11,9 @@
 
     ],
 
-    "tilemapPath" : "assets/tilemaps/",
+    "tilemapPath" : "assets/stages/",
     "tilemaps" : [
-
+        {"name": "1", "path": "1.tmx"}
     ]
 }
 
