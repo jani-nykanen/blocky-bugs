@@ -59,9 +59,12 @@ export class Stage {
     }
 
 
-    private getTile(x : number, y : number) : number {
+    private getTile(x : number, y : number, def = 1) : number {
 
-        return this.activeState[negMod(y, this.height) * this.width + negMod(x, this.width) ];
+        if (x < 0 || y < 0 || x >= this.width || y >= this.height)
+            return def;
+
+        return this.activeState[y * this.width + x];
     }
 
 
@@ -246,7 +249,17 @@ export class Stage {
 
     private drawShadowLayer(canvas : Canvas) {
 
+        //
+        // If this wasn't for a game jam, I would
+        // store shadow tile positions to an array
+        // and use it to draw these things. 
+        //
+        // But for now, let us enjoy if statements
+        //
+
         let bmp = canvas.getBitmap("tileset");
+
+        let corner = false;
 
         canvas.setGlobalAlpha(0.33);
 
@@ -256,11 +269,22 @@ export class Stage {
 
                 if (this.getTile(x, y) == 1) continue;
 
+                corner = this.getTile(x-1, y) == 1 &&
+                         this.getTile(x, y-1) == 1;
 
                 if (this.getTile(x-1, y-1) == 1) {
 
-                    canvas.drawBitmapRegion(bmp,
-                        16, 8, 4, 4, x*8, y*8);
+                    if (corner) {
+
+                        canvas.drawBitmapRegion(bmp,
+                            20, 12, 4, 4, x*8, y*8);
+                    }
+                    else if (this.getTile(x-1, y) != 1 &&
+                             this.getTile(x, y-1) != 1) {
+
+                        canvas.drawBitmapRegion(bmp,
+                            16, 8, 4, 4, x*8, y*8);
+                    }
                 }
                 else {
 
@@ -268,25 +292,38 @@ export class Stage {
 
                         canvas.drawBitmapRegion(bmp,
                             20, 8, 4, 4, x*8, y*8);
+
+                        corner = true;
                     }
 
                     if (this.getTile(x, y-1) == 1) {
 
                         canvas.drawBitmapRegion(bmp,
                             16, 12, 4, 4, x*8, y*8);
+
+                        corner = true;
                     }
                 }
 
-
                 if (this.getTile(x-1, y) == 1) {
 
+                    if (!corner) {
+                        
+                        canvas.drawBitmapRegion(bmp,
+                            24, 8, 4, 4, x*8, y*8);
+                    }
                     canvas.drawBitmapRegion(bmp,
-                        16, 8, 4, 4, x*8, y*8 + 4);
+                        24, 8, 4, 4, x*8, y*8 + 4);
                 }
                 if (this.getTile(x, y-1) == 1) {
 
+                    if (!corner) {
+
+                        canvas.drawBitmapRegion(bmp,
+                            28, 8, 4, 4, x*8, y*8);
+                    }
                     canvas.drawBitmapRegion(bmp,
-                        16, 8, 4, 4, x*8 + 4, y*8);
+                        28, 8, 4, 4, x*8 + 4, y*8);
                 }
             }
         }
@@ -295,9 +332,52 @@ export class Stage {
     }
 
 
+    private drawActiveLayer(canvas : Canvas, shadow = false) {
+
+        let bmp = canvas.getBitmap("blocks");
+
+        let id : number;
+
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                id = this.getTile(x, y);
+                switch (id) {
+
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+
+                    if (shadow) {
+
+                        canvas.drawBitmapRegion(bmp, 
+                            43, 3, 10, 10,
+                            x*8-1, y*8-1);
+                    }
+                    else {
+
+                        canvas.drawBitmapRegion(bmp, 
+                            (id - 3) * 8, 0, 8, 8,
+                            x*8, y*8);
+                    }
+                    break;
+
+                default:
+                    break;
+                }
+            }
+        }
+    }
+
+
     public draw(canvas : Canvas) {
 
         this.drawStaticLayer(canvas);
         this.drawShadowLayer(canvas);
+
+        this.drawActiveLayer(canvas, true);
+        this.drawActiveLayer(canvas, false);
     }
 }
