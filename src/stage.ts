@@ -1,6 +1,7 @@
 import { Canvas } from "./core/canvas.js";
 import { CoreEvent } from "./core/core.js";
 import { Tilemap } from "./core/tilemap.js";
+import { RGBA, Vector2 } from "./core/vector.js";
 import { PlayerBlock } from "./player.js";
 
 
@@ -21,6 +22,73 @@ class TileWallData {
 }
 
 
+class Particle {
+
+
+    private pos : Vector2;
+    private speed : Vector2;
+
+    private timer : number;
+
+    private color : RGBA;
+
+    private exist : boolean;
+
+
+    constructor() {
+
+        this.pos = new Vector2();
+        this.speed = new Vector2();
+
+        this.color = new RGBA();
+
+        this.exist = false;
+    }
+
+
+    public spawn(pos : Vector2, speed : Vector2, time : number,
+        color : RGBA) {
+
+        this.pos = pos.clone();
+        this.speed = speed.clone();
+
+        this.timer = time;
+
+        this.color = color.clone();
+
+        this.exist = true;
+    }
+
+
+    public update(event : CoreEvent) {
+
+        if (!this.exist) return;
+
+        this.pos.x += this.speed.x * event.step;
+        this.pos.y += this.speed.y * event.step;
+
+        if ((this.timer -= event.step) <= 0) {
+
+            this.exist = false;
+        }
+    }
+
+
+    public draw(canvas : Canvas) {
+
+        if (!this.exist) return;
+
+        canvas.setFillColor(this.color.r, this.color.g, this.color.b);
+        canvas.fillRect(
+            Math.round(this.pos.x),
+            Math.round(this.pos.y),
+            1, 1);
+    }
+
+
+    public doesExist = () : boolean => this.exist;
+}
+
 
 export class Stage {
 
@@ -36,6 +104,8 @@ export class Stage {
     private wallMap : Array<TileWallData>;
 
     private players : Array<PlayerBlock>;
+
+    private particles : Array<Particle>;
 
 
     constructor(index : number, event : CoreEvent) {
@@ -54,6 +124,8 @@ export class Stage {
 
         this.players = new Array<PlayerBlock> ();
         this.parsePlayers();
+
+        this.particles = new Array<Particle> ();
     }
 
 
@@ -212,6 +284,11 @@ export class Stage {
         for (let p of this.players) {
 
             p.update(this, event);
+        }
+
+        for (let p of this.particles) {
+
+            p.update(event);
         }
     }
 
@@ -400,6 +477,11 @@ export class Stage {
 
         this.drawActiveLayer(canvas, true);
         this.drawActiveLayer(canvas, false);
+
+        for (let p of this.particles) {
+
+            p.draw(canvas);
+        }
     }
 
 
@@ -424,13 +506,70 @@ export class Stage {
     }
 
 
+    private spawnParticle(pos : Vector2, speed : Vector2, 
+        time : number, color : RGBA) {
+
+        let part = <Particle> null;
+
+        for (let p of this.particles) {
+
+            if (!p.doesExist()) {
+
+                part = p;
+                break;
+            }
+        }
+
+        if (part == null) {
+
+            part = new Particle();
+            this.particles.push(part);
+        }
+
+        part.spawn(pos, speed, time, color);
+    }
+
+
+    private spawnParticles(x : number, y : number, count : number, id = 0) {
+
+        const LIFE_TIME = 16;
+        const MIN_SPEED = 0.5;
+        const MAX_SPEED = 1.0;
+
+        const COLORS = [
+            [new RGBA(0, 85, 0), new RGBA(85, 170, 0), new RGBA(170, 255, 0)]
+        ];
+
+        let pos = new Vector2(x*8 + 4, y*8 + 4);
+        let speedVec : Vector2;
+        let speed : number;
+        let angle : number;
+
+        for (let i = 0; i < count; ++ i) {
+
+            speed = (Math.random() * (MAX_SPEED - MIN_SPEED)) + MIN_SPEED;
+            angle = Math.random() * Math.PI * 2;
+
+            speedVec = new Vector2(
+                Math.cos(angle) * speed,
+                Math.sin(angle) * speed);
+
+            this.spawnParticle(pos, speedVec, LIFE_TIME,
+                COLORS[id][(Math.random() * 3) | 0]);
+        }
+    }
+
+
     public checkPlayerOverlay(x : number, y : number) {
+
+        const COUNT = 24;
 
         let id = this.getTile(x, y, 0);
 
         if (id == 3) {
 
             this.setTile(x, y, 0);
+            this.spawnParticles(x, y, COUNT, id-3);
         }
     }
 }

@@ -138,7 +138,9 @@ export class PlayerBlock {
 
             this.pos = Vector2.add(this.pos, this.moveDir);
 
-            stage.checkPlayerOverlay(this.pos.x, this.pos.y);
+            stage.checkPlayerOverlay(
+                this.pos.x + this.moveDir.x, 
+                this.pos.y + this.moveDir.y);
 
             if (!stage.isSolid(
                 this.pos.x + this.moveDir.x, 
