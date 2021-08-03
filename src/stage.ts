@@ -96,8 +96,17 @@ class Particle {
 }
 
 
+export enum HitEvent {
+
+    None = 0,
+    Stop = 1
+};
+
+
 export class Stage {
 
+
+    public readonly stageIndex : number;
 
     public readonly width : number;
     public readonly height : number;
@@ -119,6 +128,7 @@ export class Stage {
     constructor(index : number, event : CoreEvent) {
 
         this.baseMap = event.getTilemap(String(index));
+        this.stageIndex = index;
 
         this.width = this.baseMap.width;
         this.height = this.baseMap.height;
@@ -475,7 +485,7 @@ export class Stage {
 
         for (let p of this.players) {
 
-            p.draw(canvas, shadow);
+            p.draw(canvas, this, shadow);
         }
     }
 
@@ -503,7 +513,7 @@ export class Stage {
         return (ignoreBlocks ?
                 SOLID_TILES_IGNORE_BLOCKS : 
                 SOLID_TILES_BASE)
-                .includes(this.getTile(x, y), 0); 
+                .includes(this.getTile(x, y, 0)); 
     }
 
 
@@ -547,7 +557,8 @@ export class Stage {
         const MAX_SPEED = 1.0;
 
         const COLORS = [
-            [new RGBA(0, 85, 0), new RGBA(85, 170, 0), new RGBA(170, 255, 0)]
+            [new RGBA(0, 85, 0), new RGBA(85, 170, 0), new RGBA(170, 255, 0)],
+            [new RGBA(85, 0, 170), new RGBA(170, 85, 255), new RGBA(255, 170, 255)]
         ];
 
         let pos = new Vector2(x*8 + 4, y*8 + 4);
@@ -572,23 +583,29 @@ export class Stage {
 
     private checkIfCleared() : boolean {
 
-        return !this.activeState.includes(3);
+        return !this.activeState.includes(3) &&
+               !this.activeState.includes(4);
     }
  
 
-    public checkPlayerOverlay(x : number, y : number) {
+    public checkPlayerOverlay(x : number, y : number) : HitEvent {
 
-        const COUNT = 24;
+        const RETURN_VALUE = [HitEvent.None, HitEvent.Stop];
+        const PARTICLE_COUNT = 24;
 
         let id = this.getTile(x, y, 0);
 
-        if (id == 3) {
+        if (id == 3 || id == 4) {
 
             this.setTile(x, y, 0);
-            this.spawnParticles(x, y, COUNT, id-3);
+            this.spawnParticles(x, y, PARTICLE_COUNT, id-3);
 
             this.cleared = this.checkIfCleared();
+
+            return RETURN_VALUE[id - 3];
         }
+
+        return HitEvent.None;
     }
 
 

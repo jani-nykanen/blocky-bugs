@@ -1,8 +1,9 @@
 import { Canvas } from "./core/canvas.js";
 import { CoreEvent } from "./core/core.js";
+import { negMod } from "./core/mathext.js";
 import { Sprite } from "./core/sprite.js";
 import { Vector2 } from "./core/vector.js";
-import { Stage } from "./stage.js";
+import { HitEvent, Stage } from "./stage.js";
 
 
 const MOVE_TIME = 10;
@@ -78,6 +79,7 @@ export class PlayerBlock {
     private moveDir : Vector2;
     private moveTimer : number;
     private moving : boolean;
+    private preventDir : Vector2;
 
     private dust : Array<Dust>;
     private dustTimer : number;
@@ -93,7 +95,27 @@ export class PlayerBlock {
         this.moving = false;
     
         this.dust = new Array<Dust> ();
+
+        this.preventDir = new Vector2();
     }
+
+
+    // What
+    private removePreventedDirection(stick : Vector2) {
+
+        const EPS = 0.1;
+
+        let sx = Math.abs(stick.x) > Math.abs(stick.y);
+        let sy = !sx;
+
+        if ((this.preventDir.y < -EPS && !(sy && stick.y < -EPS)) ||
+            (this.preventDir.y > EPS && !(sy && stick.y > EPS)) ||
+            (this.preventDir.x < -EPS && !(sx && stick.x < -EPS)) ||
+            (this.preventDir.x > EPS && !(sx && stick.x > EPS))) {
+
+            this.preventDir.zeros();
+        }
+    }   
 
 
     private control(stage : Stage, event : CoreEvent) {
@@ -106,18 +128,31 @@ export class PlayerBlock {
         let diry = 0;
 
         let stick = event.input.getStick();
-        if (stick.length() < EPS) return;
+        if (stick.length() < EPS) {
+            
+            this.preventDir.zeros();
+            return;
+        }
+
+        if (this.preventDir.length() > EPS) {
+
+            this.removePreventedDirection(stick);
+        }
 
         let sx = Math.abs(stick.x) > Math.abs(stick.y);
         let sy = !sx;
 
-        if (sy && stick.y < -EPS)
+        if (this.preventDir.y > -EPS &&
+            sy && stick.y < -EPS)
             diry = -1;
-        else if (sy && stick.y > EPS)
+        else if (this.preventDir.y < EPS &&
+            sy && stick.y > EPS)
             diry = 1;   
-        else if (sx && stick.x < -EPS)
+        else if (this.preventDir.x > -EPS &&
+            sx && stick.x < -EPS)
             dirx = -1;
-        else if (sx && stick.x > EPS)
+        else if (this.preventDir.x < EPS &&
+            sx && stick.x > EPS)
             dirx = 1; 
 
         if (dirx != 0 || diry != 0) {
@@ -141,21 +176,25 @@ export class PlayerBlock {
 
         if (!this.moving) return;
 
+        let ret : HitEvent;
+
         if ((this.moveTimer -= event.step) <= 0) {
 
             this.pos = Vector2.add(this.pos, this.moveDir);
+            this.pos.x = negMod(this.pos.x, stage.width);
+            this.pos.y = negMod(this.pos.y, stage.height);
 
-            stage.checkPlayerOverlay(
+            ret = stage.checkPlayerOverlay(
                 this.pos.x + this.moveDir.x, 
                 this.pos.y + this.moveDir.y);
 
             if (!stage.isSolid(
                 this.pos.x + this.moveDir.x, 
-                this.pos.y + this.moveDir.y, true)) {
+                this.pos.y + this.moveDir.y, true) &&
+                ret != HitEvent.Stop) {
 
                 this.moveTimer += MOVE_TIME;
                 this.moving = true;
-
             }
             else {
 
@@ -164,6 +203,10 @@ export class PlayerBlock {
 
                 stage.setTile(this.pos.x, this.pos.y, 2);
 
+                if (ret == HitEvent.Stop) {
+
+                    this.preventDir = this.moveDir.clone();
+                }
                 return;
             }
         }
@@ -231,7 +274,27 @@ export class PlayerBlock {
     }
 
 
-    public draw(canvas : Canvas, shadow = false) {
+    private drawBase(canvas : Canvas, bmp : HTMLImageElement,
+        frame : number, xoff : number, yoff : number, shadow = false) {
+
+         if (shadow) {
+
+            canvas.drawBitmapRegion(bmp, 
+                43, 3, 10, 10,
+                Math.round(this.renderPos.x)-1 + xoff, 
+                Math.round(this.renderPos.y)-1 + yoff);
+        }
+        else {
+
+            canvas.drawBitmapRegion(bmp, 
+                frame*8, 8, 8, 8,
+                Math.round(this.renderPos.x) + xoff, 
+                Math.round(this.renderPos.y) + yoff);
+        }
+    }
+
+
+    public draw(canvas : Canvas, stage : Stage, shadow = false) {
 
         let bmp = canvas.getBitmap("blocks");
 
@@ -256,20 +319,18 @@ export class PlayerBlock {
                 frame = 2;
         }
 
-        if (shadow) {
+        if (this.renderPos.x < 0)
+            this.drawBase(canvas, bmp, frame, stage.width*8, 0, shadow);
+        else if (this.renderPos.x >= (stage.width-1)*8 )
+            this.drawBase(canvas, bmp, frame, -stage.width*8, 0, shadow);
+        
+        if (this.renderPos.y < 0)
+            this.drawBase(canvas, bmp, frame, 0, stage.height*8, shadow);
+        else if (this.renderPos.y >= (stage.height-1)*8 )
+            this.drawBase(canvas, bmp, frame, 0, -stage.height*8, shadow);
 
-            canvas.drawBitmapRegion(bmp, 
-                43, 3, 10, 10,
-                Math.round(this.renderPos.x)-1, 
-                Math.round(this.renderPos.y)-1);
-        }
-        else {
+        this.drawBase(canvas, bmp, frame, 0, 0, shadow);
 
-            canvas.drawBitmapRegion(bmp, 
-                frame*8, 8, 8, 8,
-                Math.round(this.renderPos.x), 
-                Math.round(this.renderPos.y));
-        }
     }
 
 

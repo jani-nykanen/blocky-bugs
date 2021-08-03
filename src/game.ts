@@ -73,8 +73,8 @@ export class GameScene implements Scene {
         event.transition.activate(true, TransitionEffectType.CirleIn,
             1.0/30.0, event => {
 
+                this.stage = new Stage(this.stage.stageIndex + 1, event);
                 this.resetProperties();
-                this.stage.reset();
             })
             .setCenter(new Vector2(32, 32));
     }
