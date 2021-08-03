@@ -265,6 +265,7 @@ export class InputManager {
             this.stickDelta.y < -INPUT_SPECIAL_EPS;
     }
 
+
     public downPress() : boolean {
 
         return this.stick.y > 0 && 

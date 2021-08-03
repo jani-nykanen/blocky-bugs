@@ -25,7 +25,7 @@ export class TransitionEffectManager {
     private center : Vector2;
     private speed : number;
     
-    private callback : ((ev : CoreEvent) => void);
+    private callback : ((event : CoreEvent) => void);
 
 
     constructor() {
@@ -38,12 +38,12 @@ export class TransitionEffectManager {
         this.center = new Vector2(80, 72);
         this.speed = 1;
 
-        this.callback = ev => {};
+        this.callback = event => {};
     }
 
 
     public activate(fadeIn : boolean, type : TransitionEffectType, speed : number, 
-        callback : (ev : CoreEvent) => any, 
+        callback : (event : CoreEvent) => any, 
         color = new RGBA()) : TransitionEffectManager {
 
         this.fadeIn = fadeIn;
