@@ -22,7 +22,7 @@ export class GameScene implements Scene {
 
     constructor(param : any, event : CoreEvent) {
 
-        this.stage = new Stage(1, event);
+        this.stage = new Stage(this.findLatestStage(event), event);
 
         this.stageClearTimer = 0;
         this.clearPhase = 0;
@@ -48,6 +48,16 @@ export class GameScene implements Scene {
             ]
         );
     }   
+
+    
+    private findLatestStage(event : CoreEvent) : number {
+
+        let n = 1;
+
+        while (event.getTilemap(String(++ n)) != null);
+
+        return n-1;
+    }
 
 
     private resetProperties() {

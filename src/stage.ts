@@ -1,11 +1,13 @@
 import { Canvas } from "./core/canvas.js";
-import { CoreEvent } from "./core/core.js";
+import { Core, CoreEvent } from "./core/core.js";
+import { negMod } from "./core/mathext.js";
 import { Tilemap } from "./core/tilemap.js";
 import { RGBA, Vector2 } from "./core/vector.js";
 import { PlayerBlock } from "./player.js";
 
 
 const MAX_STACK_SIZE = 256;
+const BLOCK_MOVE_TIME = 10;
 
 
 class TileWallData {
@@ -115,14 +117,19 @@ export class Stage {
     private activeState : Array<number>;
 
     private baseMap : Tilemap;
-
     private wallMap : Array<TileWallData>;
 
     private players : Array<PlayerBlock>;
-
     private particles : Array<Particle>;
 
     private cleared : boolean;
+
+    private blockAnimTimer : number;
+    private blockAnimTotalTime : number;
+    private blockAnimStart : Vector2;
+    private blockAnimEnd : Vector2;
+    private blockAnimPos : Vector2;
+    private blockAnimated : boolean;
 
 
     constructor(index : number, event : CoreEvent) {
@@ -146,6 +153,13 @@ export class Stage {
         this.particles = new Array<Particle> ();
 
         this.cleared = false;
+
+        this.blockAnimStart = new Vector2();
+        this.blockAnimEnd = new Vector2();
+        this.blockAnimPos = new Vector2();
+        this.blockAnimTimer = 0;
+        this.blockAnimTotalTime = 0;
+        this.blockAnimated = false;
     }
 
 
@@ -299,11 +313,42 @@ export class Stage {
     }
 
 
+    private updateBlockAnimation(event : CoreEvent) {
+
+        if ((this.blockAnimTimer += event.step) >= this.blockAnimTotalTime) {
+
+            this.blockAnimTimer = 0;
+            this.blockAnimTotalTime = 0;
+
+            this.blockAnimated = false;
+
+            for (let i = 0; i < this.activeState.length; ++ i) {
+
+                if (this.activeState[i] == 256) {
+
+                    this.activeState[i] = 5;
+                    break;
+                }
+            }
+
+        }
+
+        let t = this.blockAnimTimer / this.blockAnimTotalTime;
+
+        this.blockAnimPos = Vector2.lerp(this.blockAnimStart, this.blockAnimEnd, t);
+    }
+
+
     public update(event : CoreEvent) {
+
+        if (this.blockAnimated) {
+
+            this.updateBlockAnimation(event);
+        }
 
         for (let p of this.players) {
 
-            p.update(this, event, !this.cleared);
+            p.update(this, event, !this.cleared && !this.blockAnimated);
         }
 
         for (let p of this.particles) {
@@ -483,6 +528,24 @@ export class Stage {
             }
         }
 
+        if (this.blockAnimated) {
+
+            if (shadow) {
+
+                canvas.drawBitmapRegion(bmp, 
+                    43, 3, 10, 10,
+                    Math.round(this.blockAnimPos.x*8)-1, 
+                    Math.round(this.blockAnimPos.y*8)-1);
+            }
+            else {
+
+                canvas.drawBitmapRegion(bmp, 
+                    16, 0, 8, 8,
+                    Math.round(this.blockAnimPos.x*8), 
+                    Math.round(this.blockAnimPos.y*8));
+            }
+        }
+
         for (let p of this.players) {
 
             p.draw(canvas, this, shadow);
@@ -586,9 +649,48 @@ export class Stage {
         return !this.activeState.includes(3) &&
                !this.activeState.includes(4);
     }
+
+
+    private moveBlock(id : number, 
+        dx : number, dy : number, dirx : number, diry : number) {
+
+        this.setTile(dx, dy, 0);
+
+        this.blockAnimStart = new Vector2(dx, dy);
+
+        while (!this.isSolid(dx + dirx, dy + diry)) {
+
+            dx += dirx;
+            dy += diry;
+
+            dx = negMod(dx, this.width);
+            dy = negMod(dy, this.height);
+        }
+
+        
+
+        this.blockAnimEnd = new Vector2(dx, dy);
+
+        this.blockAnimTotalTime = 
+            (Vector2.distance(this.blockAnimStart, this.blockAnimEnd) | 0) *
+                BLOCK_MOVE_TIME;
+        this.blockAnimTimer = 0;
+
+        this.blockAnimated = this.blockAnimTotalTime > 0;
+        if (this.blockAnimated) {
+
+            this.blockAnimPos = this.blockAnimStart.clone();
+            this.setTile(dx, dy, 256);
+        }
+        else {
+
+            this.setTile(dx, dy, id);
+        }
+    }
  
 
-    public checkPlayerOverlay(x : number, y : number) : HitEvent {
+    public checkPlayerOverlay(x : number, y : number, 
+        dirx : number, diry : number) : HitEvent {
 
         const RETURN_VALUE = [HitEvent.None, HitEvent.Stop];
         const PARTICLE_COUNT = 24;
@@ -603,6 +705,12 @@ export class Stage {
             this.cleared = this.checkIfCleared();
 
             return RETURN_VALUE[id - 3];
+        }
+        else if (id == 5) {
+
+            this.moveBlock(id, x, y, dirx, diry);
+
+            return HitEvent.Stop;
         }
 
         return HitEvent.None;
@@ -638,7 +746,9 @@ export class Stage {
 
     public undo(event : CoreEvent) {
 
-        if (this.stateStack.length == 0) return;
+        if (this.stateStack.length == 0 ||
+            this.blockAnimTimer > 0) 
+            return;
 
         for (let p of this.players) {
 

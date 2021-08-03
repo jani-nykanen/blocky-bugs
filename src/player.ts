@@ -185,8 +185,9 @@ export class PlayerBlock {
             this.pos.y = negMod(this.pos.y, stage.height);
 
             ret = stage.checkPlayerOverlay(
-                this.pos.x + this.moveDir.x, 
-                this.pos.y + this.moveDir.y);
+                negMod(this.pos.x + this.moveDir.x, stage.width), 
+                negMod(this.pos.y + this.moveDir.y, stage.width),
+                this.moveDir.x, this.moveDir.y);
 
             if (!stage.isSolid(
                 this.pos.x + this.moveDir.x, 
