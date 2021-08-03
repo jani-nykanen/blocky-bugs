@@ -5,7 +5,7 @@ import { RGBA, Vector2 } from "./core/vector.js";
 import { PlayerBlock } from "./player.js";
 
 
-const MAX_STACK_SIZE = 64;
+const MAX_STACK_SIZE = 256;
 
 
 class TileWallData {
