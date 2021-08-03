@@ -60,6 +60,12 @@ class Dust {
 
 
     public doesExist = () : boolean => this.exist;
+
+
+    public kill() {
+
+        this.exist = false;
+    }
 }
 
 
@@ -122,6 +128,7 @@ export class PlayerBlock {
                 this.moveTimer = MOVE_TIME;
                 this.moving = true;
 
+                stage.storeState();
                 stage.setTile(this.pos.x, this.pos.y, 0);
 
                 this.dustTimer = 0;
@@ -262,5 +269,22 @@ export class PlayerBlock {
                 Math.round(this.renderPos.x), 
                 Math.round(this.renderPos.y));
         }
+    }
+
+
+    public isMoving = () : boolean => this.moving;
+
+
+    public setPosition(x : number, y : number) {
+
+        this.pos = new Vector2(x, y);
+        this.renderPos = Vector2.scalarMultiply(this.pos, 8);
+
+        for (let d of this.dust) {
+
+            d.kill();
+        }
+
+        this.moving = false;
     }
 }

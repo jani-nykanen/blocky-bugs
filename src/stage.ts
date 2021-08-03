@@ -87,6 +87,12 @@ class Particle {
 
 
     public doesExist = () : boolean => this.exist;
+
+
+    public kill() {
+
+        this.exist = false;
+    }
 }
 
 
@@ -570,6 +576,62 @@ export class Stage {
 
             this.setTile(x, y, 0);
             this.spawnParticles(x, y, COUNT, id-3);
+        }
+    }
+
+
+    public storeState() {
+
+        this.stateStack.push(Array.from(this.activeState));
+
+        if (this.stateStack.length > MAX_STACK_SIZE) {
+
+            this.stateStack.shift();
+        }
+    }
+
+
+    private resetPlayers() {
+
+        let p = 0;
+        for (let y = 0; y < this.height; ++ y) {
+
+            for (let x = 0; x < this.width; ++ x) {
+
+                if (this.getTile(x, y) == 2) {
+
+                    this.players[p ++].setPosition(x, y);
+                }
+            }
+        }
+    }
+
+
+    public undo(event : CoreEvent) {
+
+        if (this.stateStack.length == 0) return;
+
+        for (let p of this.players) {
+
+            if (p.isMoving()) return;
+        }
+
+        this.activeState = this.stateStack.pop();
+
+        this.resetPlayers();
+    }
+
+
+    public reset() {
+
+        this.stateStack.length = 0;
+        this.activeState = this.baseMap.cloneLayer(0);
+
+        this.resetPlayers();
+
+        for (let p of this.particles) {
+
+            p.kill();
         }
     }
 }

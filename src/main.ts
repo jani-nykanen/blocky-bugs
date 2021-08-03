@@ -4,9 +4,10 @@ import { Core } from "./core/core.js"
 
 window.onload = () : void => (new Core(64, 64))
     .addInputAction("fire1", "KeyZ", "Space", 0)
-    .addInputAction("fire2", "KeyX", "ShiftLeft", 2)
+    .addInputAction("restart", "KeyR", null, 3)
     .addInputAction("start", "Enter", null, 9, 7)
     .addInputAction("back", "Escape", null, 8, 6)
+    .addInputAction("undo", "Backspace", null, 2)
     .loadAssets("assets/index.json")
     .run(GameScene,
         event => {
