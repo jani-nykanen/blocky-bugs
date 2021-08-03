@@ -113,6 +113,8 @@ export class Stage {
 
     private particles : Array<Particle>;
 
+    private cleared : boolean;
+
 
     constructor(index : number, event : CoreEvent) {
 
@@ -132,6 +134,8 @@ export class Stage {
         this.parsePlayers();
 
         this.particles = new Array<Particle> ();
+
+        this.cleared = false;
     }
 
 
@@ -289,7 +293,7 @@ export class Stage {
 
         for (let p of this.players) {
 
-            p.update(this, event);
+            p.update(this, event, !this.cleared);
         }
 
         for (let p of this.particles) {
@@ -566,6 +570,12 @@ export class Stage {
     }
 
 
+    private checkIfCleared() : boolean {
+
+        return !this.activeState.includes(3);
+    }
+ 
+
     public checkPlayerOverlay(x : number, y : number) {
 
         const COUNT = 24;
@@ -576,6 +586,8 @@ export class Stage {
 
             this.setTile(x, y, 0);
             this.spawnParticles(x, y, COUNT, id-3);
+
+            this.cleared = this.checkIfCleared();
         }
     }
 
@@ -633,5 +645,10 @@ export class Stage {
 
             p.kill();
         }
+
+        this.cleared = false;
     }
+
+
+    public isCleared = () : boolean => this.cleared;
 }

@@ -221,11 +221,12 @@ export class PlayerBlock {
     }
 
 
-    public update(stage : Stage, event : CoreEvent) {
+    public update(stage : Stage, event : CoreEvent, enableControl = true) {
 
-        this.control(stage, event);
+        if (enableControl)
+            this.control(stage, event);
+            
         this.move(stage, event);
-
         this.updateDust(event);
     }
 

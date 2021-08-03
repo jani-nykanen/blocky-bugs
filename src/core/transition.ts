@@ -129,6 +129,16 @@ export class TransitionEffectManager {
 
             break;
 
+        case TransitionEffectType.BoxVertical:
+
+            canvas.setFillColor(this.color.r, this.color.g, this.color.b, this.color.a);
+            radius = Math.round(t * canvas.height / 2);
+            
+            canvas.fillRect(0, 0, canvas.width, radius);
+            canvas.fillRect(0, 64 - radius, canvas.width, radius);
+
+            break;
+
         default:
             break;
         }

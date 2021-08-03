@@ -7,7 +7,7 @@ window.onload = () : void => (new Core(64, 64))
     .addInputAction("restart", "KeyR", null, 3)
     .addInputAction("start", "Enter", null, 9, 7)
     .addInputAction("back", "Escape", null, 8, 6)
-    .addInputAction("undo", "Backspace", null, 2)
+    .addInputAction("undo", "Backspace", null, 1)
     .loadAssets("assets/index.json")
     .run(GameScene,
         event => {
