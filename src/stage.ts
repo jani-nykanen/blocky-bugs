@@ -335,6 +335,7 @@ export class Stage {
                 }
             }
 
+            event.audio.playSample(event.getSample("hit"), 1.00);
         }
 
         let t = this.blockAnimTimer / this.blockAnimTotalTime;
@@ -767,7 +768,7 @@ export class Stage {
  
 
     public checkPlayerOverlay(x : number, y : number, 
-        dirx : number, diry : number) : HitEvent {
+        dirx : number, diry : number, event : CoreEvent) : HitEvent {
 
         const RETURN_VALUE = [
             HitEvent.None, HitEvent.Stop,
@@ -784,6 +785,8 @@ export class Stage {
 
         if (id == 3 || id == 4 || id == 6 || id == 7) {
 
+            event.audio.playSample(event.getSample("break"), 0.70);
+
             this.setTile(x, y, 0);
             this.spawnParticles(x, y, PARTICLE_COUNT, id-3);
 
@@ -797,6 +800,8 @@ export class Stage {
             return RETURN_VALUE[id - 3];
         }
         else if (id == 5) {
+
+            event.audio.playSample(event.getSample("hit"), 1.00);
 
             this.moveBlock(id, x, y, dirx, diry);
 
@@ -848,6 +853,8 @@ export class Stage {
         this.activeState = this.stateStack.pop();
 
         this.resetPlayers();
+
+        event.audio.playSample(event.getSample("undo"), 0.90);
     }
 
 
@@ -868,4 +875,8 @@ export class Stage {
 
 
     public isCleared = () : boolean => this.cleared;
+
+
+    public getEndPos = () : Vector2 => 
+        Vector2.add(this.players[0].getTargetPos(), new Vector2(4, 4));
 }

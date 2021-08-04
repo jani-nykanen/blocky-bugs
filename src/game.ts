@@ -2,7 +2,8 @@ import { Canvas } from "./core/canvas.js";
 import { CoreEvent, Scene } from "./core/core.js";
 import { TransitionEffectType } from "./core/transition.js";
 import { State } from "./core/types.js";
-import { Vector2 } from "./core/vector.js";
+import { RGBA, Vector2 } from "./core/vector.js";
+import { Ending } from "./ending.js";
 import { Menu, MenuButton } from "./menu.js";
 import { Stage } from "./stage.js";
 
@@ -21,6 +22,7 @@ export class GameScene implements Scene {
     private clearPhase : number;
 
     private startTimer : number;
+    private isFinalStage : boolean;
 
 
     constructor(param : any, event : CoreEvent) {
@@ -57,6 +59,8 @@ export class GameScene implements Scene {
             TransitionEffectType.CirleIn,
             1.0/30.0, null)
             .setCenter(new Vector2(32, 32));
+
+        this.isFinalStage = false;
     }   
 
     
@@ -104,8 +108,17 @@ export class GameScene implements Scene {
     
     public update(event : CoreEvent) {
 
-        if (event.transition.isActive())
+        const END_TIME = 240;
+
+        if (event.transition.isActive()) {
+
+            if (this.isFinalStage) {
+
+                this.stage.update(event);
+            }
+
             return;
+        }
 
         if (this.startTimer > 0.0) {
 
@@ -122,13 +135,39 @@ export class GameScene implements Scene {
         if(!this.stage.isCleared() &&
             event.input.getAction("start") == State.Pressed) {
 
+            event.audio.playSample(event.getSample("pause"), 0.80);
             this.pauseMenu.activate(0);
             return;
         }
 
+        let oldStageClearedState = this.stage.isCleared();
+
         this.stage.update(event);
 
         if (this.stage.isCleared()) {
+
+            if (!oldStageClearedState) {
+
+                event.audio.playSample(event.getSample("victory"), 1.0);
+            }
+
+            this.isFinalStage = this.stage.stageIndex == this.findLatestStage(event);
+            if (this.isFinalStage) {
+
+                event.transition.activate(
+                    true, TransitionEffectType.CirleIn,
+                    1.0/END_TIME,
+                    event => {
+
+                        event.changeScene(Ending);
+
+                    }, new RGBA(255, 255, 255))
+                    .setCenter(this.stage.getEndPos());
+
+                event.shake(1, END_TIME);
+
+                return;
+            }
 
             if ((this.stageClearTimer += event.step) >= CLEAR_TIME[this.clearPhase]) {
 
@@ -236,7 +275,9 @@ export class GameScene implements Scene {
 
         canvas.clear(170, 170, 170);
 
+        canvas.applyShake();
         this.stage.draw(canvas);
+        canvas.moveTo();
 
         if (this.startTimer > 0) {
 

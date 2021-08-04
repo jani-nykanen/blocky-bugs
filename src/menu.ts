@@ -91,7 +91,7 @@ export class Menu {
 
         if (oldPos != this.cursorPos) {
 
-            // event.audio.playSample(event.getSample("select"), 0.70);
+            event.audio.playSample(event.getSample("choose"), 0.70);
 
             this.cursorPos = negMod(this.cursorPos, this.buttons.length);
         }
@@ -102,7 +102,7 @@ export class Menu {
             event.input.getAction("start") == State.Pressed) {
 
             activeButton.evaluateCallback(event);
-            // event.audio.playSample(event.getSample("choose"), 0.70);
+            event.audio.playSample(event.getSample("select"), 0.60);
         }
     }
 

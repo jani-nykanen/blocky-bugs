@@ -190,7 +190,7 @@ export class PlayerBlock {
             ret = stage.checkPlayerOverlay(
                 negMod(this.pos.x + this.moveDir.x, stage.width), 
                 negMod(this.pos.y + this.moveDir.y, stage.width),
-                this.moveDir.x, this.moveDir.y);
+                this.moveDir.x, this.moveDir.y, event);
 
             if (!stage.isSolid(
                 this.pos.x + this.moveDir.x, 
@@ -211,6 +211,11 @@ export class PlayerBlock {
 
                     this.preventDir = this.moveDir.clone();
                 }
+                else {
+
+                    event.audio.playSample(event.getSample("hit"), 1.00);
+                }
+
                 return;
             }
         }
@@ -363,4 +368,9 @@ export class PlayerBlock {
             this.moveTimer = 0;
         }
     }
+
+
+    public getTargetPos = () : Vector2 => 
+        Vector2.scalarMultiply(
+            Vector2.add(this.pos, this.moveDir), 8);
 }

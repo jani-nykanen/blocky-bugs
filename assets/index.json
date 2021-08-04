@@ -4,12 +4,22 @@
         {"name": "blocks", "path": "blocks.png"},
         {"name": "font", "path": "font.png"},
         {"name": "fontYellow", "path": "font_yellow.png"},
-        {"name": "tileset", "path": "tileset.png"}
+        {"name": "tileset", "path": "tileset.png"},
+        {"name": "theEnd", "path": "the_end.png"}
     ],
 
     "samplePath" : "assets/audio/",
     "samples" : [
 
+        {"name": "hit", "path": "hit.wav"},
+        {"name": "break", "path": "break.wav"},
+        {"name": "choose", "path": "choose.wav"},
+        {"name": "select", "path": "select.wav"},
+        {"name": "pause", "path": "pause.wav"},
+        {"name": "undo", "path": "undo.wav"},
+
+        {"name": "victory", "path": "victory.ogg"}
+        
     ],
 
     "tilemapPath" : "assets/stages/",

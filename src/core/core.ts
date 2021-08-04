@@ -17,18 +17,20 @@ export class CoreEvent {
 
     private readonly assets : AssetManager;
     private readonly core : Core;
+    private readonly canvas : Canvas;
 
 
     constructor(step : number, core : Core,
         input : InputManager, assets : AssetManager,
         transition : TransitionEffectManager,
-        audio : AudioPlayer) {
+        canvas : Canvas, audio : AudioPlayer) {
 
         this.core = core;
         this.step = step;
         this.input = input;
         this.assets = assets;
         this.transition = transition;
+        this.canvas = canvas;
         this.audio = audio;
     }
 
@@ -41,6 +43,10 @@ export class CoreEvent {
 
     public getSample = (name : string) : AudioSample => this.assets.getSample(name);
     public getTilemap = (name : string) : Tilemap => this.assets.getTilemap(name);
+
+
+    public shake = (shakeAmount : number, shakeTime : number) : void => 
+        this.canvas.shake(shakeTime, shakeAmount);
 }
 
 
@@ -89,8 +95,8 @@ export class Core {
         this.transition = new TransitionEffectManager();
         
         this.event = new CoreEvent(frameSkip+1, this,
-            this.input, this.assets,
-            this.transition, this.audio);
+            this.input, this.assets, this.transition,
+            this.canvas, this.audio);
 
         this.timeSum = 0.0;
         this.oldTime = 0.0;

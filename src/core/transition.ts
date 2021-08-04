@@ -24,6 +24,7 @@ export class TransitionEffectManager {
     private active : boolean;
     private center : Vector2;
     private speed : number;
+    private param : number;
     
     private callback : ((event : CoreEvent) => void);
 
@@ -37,6 +38,7 @@ export class TransitionEffectManager {
         this.active = false;
         this.center = new Vector2(80, 72);
         this.speed = 1;
+        this.param = null;
 
         this.callback = event => {};
     }
@@ -44,7 +46,7 @@ export class TransitionEffectManager {
 
     public activate(fadeIn : boolean, type : TransitionEffectType, speed : number, 
         callback : (event : CoreEvent) => any, 
-        color = new RGBA()) : TransitionEffectManager {
+        color = new RGBA(), specialParam = 0) : TransitionEffectManager {
 
         this.fadeIn = fadeIn;
         this.speed = speed;
@@ -52,6 +54,8 @@ export class TransitionEffectManager {
         this.callback = callback;
         this.effectType = type;
         this.color = color.clone();
+
+        this.param = specialParam;
 
         this.active = true;
 
@@ -104,6 +108,11 @@ export class TransitionEffectManager {
         switch (this.effectType) {
 
         case TransitionEffectType.Fade:
+
+            if (this.param > 0) {
+
+                t = Math.floor(t * this.param) / this.param;
+            }
 
             canvas.setFillColor(this.color.r, this.color.g, this.color.b, this.color.a);
 
