@@ -568,6 +568,7 @@ export class Stage {
                 case 4:
                 case 5:
                 case 6:
+                case 7:
 
                     if (shadow) {
 
@@ -684,7 +685,8 @@ export class Stage {
             [new RGBA(0, 85, 0), new RGBA(85, 170, 0), new RGBA(170, 255, 0)],
             [new RGBA(85, 0, 170), new RGBA(170, 85, 255), new RGBA(255, 170, 255)],
             null,
-            [new RGBA(85, 0, 0), new RGBA(255, 85, 0), new RGBA(255, 170, 0)]
+            [new RGBA(85, 0, 0), new RGBA(255, 85, 0), new RGBA(255, 170, 0)],
+            [new RGBA(85, 85, 0), new RGBA(170, 170, 0), new RGBA(255, 255, 170)]
         ];
 
         let pos = new Vector2(x*8 + 4, y*8 + 4);
@@ -711,7 +713,8 @@ export class Stage {
 
         return !this.activeState.includes(3) &&
                !this.activeState.includes(4) &&
-               !this.activeState.includes(6);
+               !this.activeState.includes(6) &&
+               !this.activeState.includes(7);
     }
 
 
@@ -730,8 +733,6 @@ export class Stage {
             dx = negMod(dx, this.width);
             dy = negMod(dy, this.height);
         }
-
-        
 
         this.blockAnimEnd = new Vector2(dx, dy);
 
@@ -770,7 +771,8 @@ export class Stage {
 
         const RETURN_VALUE = [
             HitEvent.None, HitEvent.Stop,
-            HitEvent.Stop, HitEvent.Stop];
+            HitEvent.Stop, HitEvent.Stop,
+            HitEvent.None];
         const PARTICLE_COUNT = 24;
 
         let id = this.getTile(x, y, 0);
@@ -780,7 +782,7 @@ export class Stage {
             this.preventDir = new Vector2(dirx, diry);
         }
 
-        if (id == 3 || id == 4 || id == 6) {
+        if (id == 3 || id == 4 || id == 6 || id == 7) {
 
             this.setTile(x, y, 0);
             this.spawnParticles(x, y, PARTICLE_COUNT, id-3);
