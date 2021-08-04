@@ -118,11 +118,11 @@ export class PlayerBlock {
     }   
 
 
-    private control(stage : Stage, event : CoreEvent) {
+    public control(stage : Stage, preventDir : Vector2, event : CoreEvent) : boolean {
 
         const EPS = 0.25;
 
-        if (this.moving) return;
+        if (this.moving) return false;
 
         let dirx = 0;
         let diry = 0;
@@ -131,7 +131,7 @@ export class PlayerBlock {
         if (stick.length() < EPS) {
             
             this.preventDir.zeros();
-            return;
+            return false;
         }
 
         if (this.preventDir.length() > EPS) {
@@ -142,16 +142,16 @@ export class PlayerBlock {
         let sx = Math.abs(stick.x) > Math.abs(stick.y);
         let sy = !sx;
 
-        if (this.preventDir.y > -EPS &&
+        if (preventDir.y > -EPS &&
             sy && stick.y < -EPS)
             diry = -1;
-        else if (this.preventDir.y < EPS &&
+        else if (preventDir.y < EPS &&
             sy && stick.y > EPS)
             diry = 1;   
-        else if (this.preventDir.x > -EPS &&
+        else if (preventDir.x > -EPS &&
             sx && stick.x < -EPS)
             dirx = -1;
-        else if (this.preventDir.x < EPS &&
+        else if (preventDir.x < EPS &&
             sx && stick.x > EPS)
             dirx = 1; 
 
@@ -167,8 +167,11 @@ export class PlayerBlock {
                 stage.setTile(this.pos.x, this.pos.y, 0);
 
                 this.dustTimer = 0;
+
+                return true;
             }
         }
+        return false;
     }
 
 
@@ -265,11 +268,8 @@ export class PlayerBlock {
     }
 
 
-    public update(stage : Stage, event : CoreEvent, enableControl = true) {
+    public update(stage : Stage, event : CoreEvent) {
 
-        if (enableControl)
-            this.control(stage, event);
-            
         this.move(stage, event);
         this.updateDust(event);
     }
@@ -349,5 +349,18 @@ export class PlayerBlock {
         }
 
         this.moving = false;
+    }
+
+
+    public checkConflict(stage : Stage) {
+
+        if (stage.isSolid(this.pos.x + this.moveDir.x,
+            this.pos.y + this.moveDir.y, true)) {
+
+            this.moving = false;
+            this.renderPos = Vector2.scalarMultiply(this.pos, 8);
+
+            this.moveTimer = 0;
+        }
     }
 }

@@ -131,6 +131,8 @@ export class Stage {
     private blockAnimPos : Vector2;
     private blockAnimated : boolean;
 
+    private preventDir : Vector2;
+
 
     constructor(index : number, event : CoreEvent) {
 
@@ -160,6 +162,8 @@ export class Stage {
         this.blockAnimTimer = 0;
         this.blockAnimTotalTime = 0;
         this.blockAnimated = false;
+
+        this.preventDir = new Vector2();
     }
 
 
@@ -339,21 +343,78 @@ export class Stage {
     }
 
 
+    private removePreventedDirection(stick : Vector2) {
+
+        const EPS = 0.1;
+
+        let sx = Math.abs(stick.x) > Math.abs(stick.y);
+        let sy = !sx;
+
+        if ((this.preventDir.y < -EPS && !(sy && stick.y < -EPS)) ||
+            (this.preventDir.y > EPS && !(sy && stick.y > EPS)) ||
+            (this.preventDir.x < -EPS && !(sx && stick.x < -EPS)) ||
+            (this.preventDir.x > EPS && !(sx && stick.x > EPS))) {
+
+            this.preventDir.zeros();
+        }
+    }   
+
+
+    private anyMoving() : boolean {
+
+        for (let p of this.players) {
+
+            if (p.isMoving()) return true;
+        }
+        return false;
+    }
+
+
     public update(event : CoreEvent) {
+
+        const EPS = 0.25;
+        if (this.preventDir.length() > EPS) {
+            
+            this.removePreventedDirection(event.input.getStick());
+        }
 
         if (this.blockAnimated) {
 
             this.updateBlockAnimation(event);
         }
 
+        let anyMoving = this.anyMoving();
+        let startedMoving = false;
+
+        do {
+
+            startedMoving = false;
+            for (let p of this.players) {
+
+                if (!anyMoving && !this.cleared && !this.blockAnimated) {
+
+                    startedMoving = startedMoving || 
+                    p.control(this, this.preventDir, event);
+                }
+            }
+        }
+        while(startedMoving);
+
         for (let p of this.players) {
 
-            p.update(this, event, !this.cleared && !this.blockAnimated);
+            p.update(this, event);
         }
 
         for (let p of this.particles) {
 
             p.update(event);
+        }
+
+        // To make sure multiple players cannot go
+        // to the same tile
+        for (let p of this.players) {
+
+            p.checkConflict(this);
         }
     }
 
@@ -621,7 +682,9 @@ export class Stage {
 
         const COLORS = [
             [new RGBA(0, 85, 0), new RGBA(85, 170, 0), new RGBA(170, 255, 0)],
-            [new RGBA(85, 0, 170), new RGBA(170, 85, 255), new RGBA(255, 170, 255)]
+            [new RGBA(85, 0, 170), new RGBA(170, 85, 255), new RGBA(255, 170, 255)],
+            null,
+            [new RGBA(85, 0, 0), new RGBA(255, 85, 0), new RGBA(255, 170, 0)]
         ];
 
         let pos = new Vector2(x*8 + 4, y*8 + 4);
@@ -647,7 +710,8 @@ export class Stage {
     private checkIfCleared() : boolean {
 
         return !this.activeState.includes(3) &&
-               !this.activeState.includes(4);
+               !this.activeState.includes(4) &&
+               !this.activeState.includes(6);
     }
 
 
@@ -687,22 +751,46 @@ export class Stage {
             this.setTile(dx, dy, id);
         }
     }
+
+
+    private switchBlocks() {
+
+        for (let i = 0; i < this.width*this.height; ++ i) {
+
+            if (this.activeState[i] == 3)
+                this.activeState[i] = 4;
+            else if (this.activeState[i] == 4)
+                this.activeState[i] = 3;
+        }
+    }
  
 
     public checkPlayerOverlay(x : number, y : number, 
         dirx : number, diry : number) : HitEvent {
 
-        const RETURN_VALUE = [HitEvent.None, HitEvent.Stop];
+        const RETURN_VALUE = [
+            HitEvent.None, HitEvent.Stop,
+            HitEvent.Stop, HitEvent.Stop];
         const PARTICLE_COUNT = 24;
 
         let id = this.getTile(x, y, 0);
 
-        if (id == 3 || id == 4) {
+        if (id == 4 || id == 5) {
+
+            this.preventDir = new Vector2(dirx, diry);
+        }
+
+        if (id == 3 || id == 4 || id == 6) {
 
             this.setTile(x, y, 0);
             this.spawnParticles(x, y, PARTICLE_COUNT, id-3);
 
             this.cleared = this.checkIfCleared();
+
+            if (!this.cleared && id == 6) {
+
+                this.switchBlocks();
+            }
 
             return RETURN_VALUE[id - 3];
         }
@@ -710,7 +798,7 @@ export class Stage {
 
             this.moveBlock(id, x, y, dirx, diry);
 
-            return HitEvent.Stop;
+            return RETURN_VALUE[id - 3];
         }
 
         return HitEvent.None;
