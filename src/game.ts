@@ -8,6 +8,7 @@ import { Stage } from "./stage.js";
 
 
 const CLEAR_TIME = [60, 60];
+const START_TIME = 120;
 
 
 export class GameScene implements Scene {
@@ -19,13 +20,19 @@ export class GameScene implements Scene {
     private stageClearTimer : number;
     private clearPhase : number;
 
+    private startTimer : number;
+
 
     constructor(param : any, event : CoreEvent) {
 
-        this.stage = new Stage(this.findLatestStage(event), event);
+        this.stage = new Stage(
+            1 // this.findLatestStage(event)
+            , event);
 
         this.stageClearTimer = 0;
         this.clearPhase = 0;
+
+        this.startTimer = START_TIME;
 
         this.pauseMenu = new Menu(
             [
@@ -47,6 +54,11 @@ export class GameScene implements Scene {
                 })
             ]
         );
+
+        event.transition.activate(false, 
+            TransitionEffectType.CirleIn,
+            1.0/30.0, null)
+            .setCenter(new Vector2(32, 32));
     }   
 
     
@@ -85,6 +97,8 @@ export class GameScene implements Scene {
 
                 this.stage = new Stage(this.stage.stageIndex + 1, event);
                 this.resetProperties();
+
+                this.startTimer = START_TIME;
             })
             .setCenter(new Vector2(32, 32));
     }
@@ -94,6 +108,12 @@ export class GameScene implements Scene {
 
         if (event.transition.isActive())
             return;
+
+        if (this.startTimer > 0.0) {
+
+            this.startTimer -= event.step;
+            return;
+        }
 
         if (this.pauseMenu.isActive()) {
 
@@ -180,12 +200,12 @@ export class GameScene implements Scene {
         canvas.setFillColor(0, 0, 0, 0.67);
         canvas.fillRect(0, 0, 64, 64);
 
-        canvas.setFillColor(0, 170, 255);
+        canvas.setFillColor(0, 85, 170);
         canvas.fillRect(
             canvas.width/2 - BOX_WIDTH/2-1, 
             canvas.height/2 - BOX_HEIGHT/2-1, 
             BOX_WIDTH+2, BOX_HEIGHT+2);
-        canvas.setFillColor(0, 85, 170);
+        canvas.setFillColor(85, 170, 255);
         canvas.fillRect(
             canvas.width/2 - BOX_WIDTH/2, 
             canvas.height/2 - BOX_HEIGHT/2, 
@@ -195,11 +215,58 @@ export class GameScene implements Scene {
     }
 
 
+    public drawStartMessage(canvas : Canvas) {
+
+        canvas.setFillColor(0, 0, 0, 0.33);
+        canvas.fillRect(0, 0, 64, 64);
+
+        let str = "STAGE " + String(this.stage.stageIndex);
+        let end = str.length;
+        let t : number;
+        let y : number;
+
+        let limit = START_TIME / 2;
+
+        if (this.startTimer < limit) {
+
+            t = this.startTimer / limit;
+            end = ((str.length) * t) | 0;
+
+            t = 1.0 - (this.startTimer % (limit / (str.length))) / 
+                      (limit / (str.length));
+            y = Math.round(35 * t);
+
+            if (str[end] == " ") {
+
+                this.startTimer -= (limit / (str.length));
+                -- end;
+            }   
+
+            canvas.drawText(canvas.getBitmap("fontYellow"),
+                str[end],
+                canvas.width/2 - (str.length * 5)/2 + end*5, 
+                canvas.height/2 - 3 + y, 
+                -3, 0, false);
+        }
+
+        canvas.drawText(canvas.getBitmap("fontYellow"),
+            str.substring(0, end),
+            canvas.width/2 - (str.length * 5)/2, 
+            canvas.height/2 - 3, -3, 0, false);
+    }
+
+
     public redraw(canvas : Canvas) {
 
         canvas.clear(170, 170, 170);
 
         this.stage.draw(canvas);
+
+        if (this.startTimer > 0) {
+
+            this.drawStartMessage(canvas);
+            return;
+        }
 
         if (this.stage.isCleared()) {
 
