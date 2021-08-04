@@ -113,13 +113,15 @@ export class Menu {
         let str = "";
 
         let font = canvas.getBitmap("font");
+        let fontYellow = canvas.getBitmap("fontYellow");
 
         for (let i = 0; i < this.buttons.length; ++ i) {
 
             str = i == this.cursorPos ? ">" : " ";
             str += this.buttons[i].getText();
 
-            canvas.drawText(font, str, x, y + i * yoff, xoff, 0);
+            canvas.drawText(i == this.cursorPos ? fontYellow : font, 
+                str, x, y + i * yoff, xoff, 0);
         } 
     }
 

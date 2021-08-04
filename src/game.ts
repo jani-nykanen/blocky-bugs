@@ -8,7 +8,7 @@ import { Stage } from "./stage.js";
 
 
 const CLEAR_TIME = [60, 60];
-const START_TIME = 120;
+const START_TIME = 60;
 
 
 export class GameScene implements Scene {
@@ -175,18 +175,18 @@ export class GameScene implements Scene {
             y = 32 * (this.stageClearTimer % (CLEAR_TIME[0] / 6)) / (CLEAR_TIME[0] / 6);
         }
 
-        canvas.drawText(canvas.getBitmap("fontYellow"),
+        canvas.drawText(canvas.getBitmap("font"),
             TOP_ROW.substring(0, len), 17, 24, -3, 0, false);    
         if (len < 6) {
 
-            canvas.drawText(canvas.getBitmap("fontYellow"),
+            canvas.drawText(canvas.getBitmap("font"),
                 TOP_ROW[len], 17 + 5 * len, -8 + y, -3, 0, false);   
         } 
-        canvas.drawText(canvas.getBitmap("fontYellow"),
+        canvas.drawText(canvas.getBitmap("font"),
             BOTTOM_ROW.substring(0, len), 17, 32, -3, 0, false);  
         if (len < 6) {
 
-            canvas.drawText(canvas.getBitmap("fontYellow"),
+            canvas.drawText(canvas.getBitmap("font"),
                 BOTTOM_ROW[len], 17 + 5 * len, 64 - y, -3, 0, false);  
         } 
     }
@@ -220,39 +220,17 @@ export class GameScene implements Scene {
         canvas.setFillColor(0, 0, 0, 0.33);
         canvas.fillRect(0, 0, 64, 64);
 
-        let str = "STAGE " + String(this.stage.stageIndex);
-        let end = str.length;
-        let t : number;
-        let y : number;
+        let y = 0;
 
-        let limit = START_TIME / 2;
+        if (this.startTimer < START_TIME/2) {
 
-        if (this.startTimer < limit) {
-
-            t = this.startTimer / limit;
-            end = ((str.length) * t) | 0;
-
-            t = 1.0 - (this.startTimer % (limit / (str.length))) / 
-                      (limit / (str.length));
-            y = Math.round(35 * t);
-
-            if (str[end] == " ") {
-
-                this.startTimer -= (limit / (str.length));
-                -- end;
-            }   
-
-            canvas.drawText(canvas.getBitmap("fontYellow"),
-                str[end],
-                canvas.width/2 - (str.length * 5)/2 + end*5, 
-                canvas.height/2 - 3 + y, 
-                -3, 0, false);
+            y = Math.round((1.0 - (this.startTimer / (START_TIME/2))) * 40);
         }
 
-        canvas.drawText(canvas.getBitmap("fontYellow"),
-            str.substring(0, end),
-            canvas.width/2 - (str.length * 5)/2, 
-            canvas.height/2 - 3, -3, 0, false);
+        canvas.drawText(canvas.getBitmap("font"),
+            "STAGE " + String(this.stage.stageIndex),
+            canvas.width/2, canvas.height/2 - 3 - y, 
+            -3, 0, true);
     }
 
 
