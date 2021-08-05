@@ -17,17 +17,17 @@ export class Ending implements Scene  {
 
         event.transition.activate(false,
             TransitionEffectType.Fade, 1.0/60.0,
-            null, new RGBA(255, 255, 255), 8);
+            null, new RGBA(255, 255, 255), 4);
 
         this.waveTimer = WAVE_TIME;
     }
 
 
-    public update(ev : CoreEvent) {
+    public update(event : CoreEvent) {
 
         if (this.waveTimer > 0) {
 
-            this.waveTimer -= ev.step;
+            this.waveTimer -= event.step;
         }
     }
 
@@ -40,7 +40,6 @@ export class Ending implements Scene  {
         let bmp = canvas.getBitmap("theEnd");
 
         let t = this.waveTimer / WAVE_TIME;
-        let p : number;
 
         if (this.waveTimer <= 0) {
 
@@ -49,14 +48,7 @@ export class Ending implements Scene  {
         else {
 
             canvas.clear(0, 0, 0);
-
-            for (let y = 0; y < 64; ++ y) {
-
-                p = Math.sin(((y / 64) * FACTOR_2 + t) * Math.PI*2) * FACTOR_1 * t;
-
-                canvas.drawBitmapRegion(bmp, 0, y, 64, 1,
-                    Math.round(p), y);
-            }
+            canvas.drawWavingImage(bmp, 0, 0, t, FACTOR_1, FACTOR_2);
         }
     }
 

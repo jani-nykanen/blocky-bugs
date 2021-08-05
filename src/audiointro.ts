@@ -1,6 +1,6 @@
 import { Canvas } from "./core/canvas.js";
 import { CoreEvent, Scene } from "./core/core.js";
-import { GameScene } from "./game.js";
+import { Intro } from "./intro.js";
 import { Menu, MenuButton } from "./menu.js";
 
 
@@ -31,7 +31,7 @@ export class AudioIntro implements Scene {
                         event.audio.setGlobalMusicVolume(AudioIntro.INITIAL_MUSIC_VOLUME);
                         event.audio.setGlobalSampleVolume(AudioIntro.INITIAL_SAMPLE_VOLUME);
 
-                        event.changeScene(GameScene);
+                        event.changeScene(Intro);
                     }),
 
                 new MenuButton("NO",
@@ -39,7 +39,7 @@ export class AudioIntro implements Scene {
 
                         event.audio.toggle(false);
 
-                        event.changeScene(GameScene);
+                        event.changeScene(Intro);
                     })
             ]
         );
@@ -58,7 +58,7 @@ export class AudioIntro implements Scene {
 
     public redraw(canvas : Canvas) {
 
-        canvas.clear(0, 170, 255);
+        canvas.clear(85, 170, 255);
 
         canvas.drawText(canvas.getBitmap("font"), TEXT,
             canvas.width/2 - 15, 12, -3, 0, false);

@@ -111,7 +111,7 @@ export class TransitionEffectManager {
 
             if (this.param > 0) {
 
-                t = Math.floor(t * this.param) / this.param;
+                t = Math.round(t * this.param) / this.param;
             }
 
             canvas.setFillColor(this.color.r, this.color.g, this.color.b, this.color.a);

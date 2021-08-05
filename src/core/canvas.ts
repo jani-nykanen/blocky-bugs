@@ -420,6 +420,21 @@ export class Canvas {
     }
 
 
+    public drawWavingImage(bmp : HTMLImageElement, dx : number, dy : number,
+        t : number, factor1 : number, factor2 : number) {
+
+        let p : number;
+
+        for (let y = 0; y < bmp.height; ++ y) {
+
+            p = Math.sin(((y / bmp.height) * factor2 + t) * Math.PI*2) * factor1 * t;
+
+            this.drawBitmapRegion(bmp, dx, dy + y, bmp.width, 1,
+                Math.round(p), y);
+        }
+    }
+
+
     public getBitmap(name : string) : HTMLImageElement {
 
         return this.assets.getBitmap(name);

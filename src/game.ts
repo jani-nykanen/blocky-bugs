@@ -6,6 +6,7 @@ import { RGBA, Vector2 } from "./core/vector.js";
 import { Ending } from "./ending.js";
 import { Menu, MenuButton } from "./menu.js";
 import { Stage } from "./stage.js";
+import { TitleScreen } from "./titlescreen.js";
 
 
 const CLEAR_TIME = [60, 60];
@@ -28,7 +29,13 @@ export class GameScene implements Scene {
 
     constructor(param : any, event : CoreEvent) {
 
-        this.stage = new Stage(1, event); // this.findLatestStage(event), event);
+        let startIndex = 1;
+        if (param != null) {
+
+            startIndex = Number(param);
+        }
+
+        this.stage = new Stage(startIndex, event); // this.findLatestStage(event), event);
 
         this.stageClearTimer = 0;
         this.clearPhase = 0;
@@ -62,6 +69,14 @@ export class GameScene implements Scene {
                 event => {
                     
                     this.yesNoMenu.deactivate();
+                    this.pauseMenu.deactivate();
+
+                    event.transition.activate(true, 
+                        TransitionEffectType.BoxVertical,
+                        1.0/30.0, event => {
+                            
+                            event.changeScene(TitleScreen);
+                        });
                 }),
 
                 new MenuButton("NO", 
@@ -110,6 +125,16 @@ export class GameScene implements Scene {
 
 
     private nextStage(event : CoreEvent) {
+
+        try {
+
+            window.localStorage.setItem("bughunt_save", 
+                String(this.stage.stageIndex + 1));
+        }   
+        catch(e) {
+            
+            console.log(e);
+        }
 
         event.transition.activate(true, TransitionEffectType.CirleIn,
             1.0/30.0, event => {
@@ -169,12 +194,16 @@ export class GameScene implements Scene {
 
         if (this.stage.isCleared()) {
 
+            this.isFinalStage = this.stage.stageIndex == this.findLatestStage(event);
+
             if (!oldStageClearedState) {
 
-                event.audio.playSample(event.getSample("victory"), 1.0);
+                if (this.isFinalStage)
+                    event.audio.playSample(event.getSample("destroy"), 0.70);
+                else
+                    event.audio.playSample(event.getSample("victory"), 1.0);
             }
 
-            this.isFinalStage = this.stage.stageIndex == this.findLatestStage(event);
             if (this.isFinalStage) {
 
                 event.transition.activate(
@@ -213,6 +242,7 @@ export class GameScene implements Scene {
 
             if (event.input.getAction("restart") == State.Pressed) {
 
+                event.audio.playSample(event.getSample("restart"), 0.70);
                 this.reset(event);
             }
         }

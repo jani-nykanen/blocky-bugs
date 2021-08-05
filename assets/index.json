@@ -5,6 +5,8 @@
         {"name": "font", "path": "font.png"},
         {"name": "fontYellow", "path": "font_yellow.png"},
         {"name": "tileset", "path": "tileset.png"},
+        {"name": "logo", "path": "logo.png"},
+        {"name": "author", "path": "author.png"},
         {"name": "theEnd", "path": "the_end.png"}
     ],
 
@@ -17,7 +19,10 @@
         {"name": "select", "path": "select.wav"},
         {"name": "pause", "path": "pause.wav"},
         {"name": "undo", "path": "undo.wav"},
+        {"name": "restart", "path": "restart.wav"},
+        {"name": "start", "path": "start.wav"},
 
+        {"name": "destroy", "path": "destroy.ogg"},
         {"name": "victory", "path": "victory.ogg"}
         
     ],
