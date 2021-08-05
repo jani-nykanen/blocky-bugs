@@ -17,6 +17,7 @@ export class GameScene implements Scene {
 
     private stage : Stage;
     private pauseMenu : Menu;
+    private yesNoMenu : Menu;
 
     private stageClearTimer : number;
     private clearPhase : number;
@@ -27,7 +28,7 @@ export class GameScene implements Scene {
 
     constructor(param : any, event : CoreEvent) {
 
-        this.stage = new Stage(19, event); // this.findLatestStage(event), event);
+        this.stage = new Stage(1, event); // this.findLatestStage(event), event);
 
         this.stageClearTimer = 0;
         this.clearPhase = 0;
@@ -50,7 +51,23 @@ export class GameScene implements Scene {
                 new MenuButton("QUIT",
                 event => {
 
-                    // ...
+                    this.yesNoMenu.activate(1);
+                })
+            ]
+        );
+
+        this.yesNoMenu = new Menu(
+            [
+                new MenuButton("YES",
+                event => {
+                    
+                    this.yesNoMenu.deactivate();
+                }),
+
+                new MenuButton("NO", 
+                event => {
+
+                    this.yesNoMenu.deactivate();
                 })
             ]
         );
@@ -127,6 +144,12 @@ export class GameScene implements Scene {
         }
 
         if (this.pauseMenu.isActive()) {
+
+            if (this.yesNoMenu.isActive()) {
+
+                this.yesNoMenu.update(event);
+                return;
+            }
 
             this.pauseMenu.update(event);
             return;
@@ -248,7 +271,16 @@ export class GameScene implements Scene {
             canvas.height/2 - BOX_HEIGHT/2, 
             BOX_WIDTH, BOX_HEIGHT);
 
-        this.pauseMenu.draw(canvas, 10, 20, -3, 8);
+        if (this.yesNoMenu.isActive()) {
+
+            canvas.drawText(canvas.getBitmap("font"), "REALLY?",
+                canvas.width/2, 20, -3, 0, true);
+            this.yesNoMenu.draw(canvas, 16, 30, -3, 8);
+        }
+        else {
+
+            this.pauseMenu.draw(canvas, 10, 20, -3, 8);
+        }
     }
 
 
