@@ -27,7 +27,7 @@ export class GameScene implements Scene {
 
     constructor(param : any, event : CoreEvent) {
 
-        this.stage = new Stage(1, event); // this.findLatestStage(event), event);
+        this.stage = new Stage(19, event); // this.findLatestStage(event), event);
 
         this.stageClearTimer = 0;
         this.clearPhase = 0;
