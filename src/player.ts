@@ -118,7 +118,7 @@ export class PlayerBlock {
     }   
 
 
-    public control(stage : Stage, preventDir : Vector2, event : CoreEvent) : boolean {
+    public control(stage : Stage, preventDir : Vector2, isFirst : boolean, event : CoreEvent) : boolean {
 
         const EPS = 0.25;
 
@@ -163,7 +163,9 @@ export class PlayerBlock {
                 this.moveTimer = MOVE_TIME;
                 this.moving = true;
 
-                stage.storeState();
+                if (isFirst)
+                    stage.storeState();
+
                 stage.setTile(this.pos.x, this.pos.y, 0);
 
                 this.dustTimer = 0;
@@ -353,20 +355,27 @@ export class PlayerBlock {
             d.kill();
         }
 
+        this.moveTimer = 0;
         this.moving = false;
     }
 
 
-    public checkConflict(stage : Stage) {
+    public checkConflict(stage : Stage) : boolean {
 
-        if (stage.isSolid(this.pos.x + this.moveDir.x,
+        if (this.moving &&
+            stage.isSolid(this.pos.x + this.moveDir.x,
             this.pos.y + this.moveDir.y, true)) {
 
             this.moving = false;
             this.renderPos = Vector2.scalarMultiply(this.pos, 8);
 
             this.moveTimer = 0;
+
+            stage.setTile(this.pos.x, this.pos.y, 2);
+
+            return true;
         }
+        return false;
     }
 
 

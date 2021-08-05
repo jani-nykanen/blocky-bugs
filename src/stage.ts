@@ -386,6 +386,8 @@ export class Stage {
 
         let anyMoving = this.anyMoving();
         let startedMoving = false;
+        let stateChanged = false;
+        let isFirst = true;
 
         do {
 
@@ -394,10 +396,16 @@ export class Stage {
 
                 if (!anyMoving && !this.cleared && !this.blockAnimated) {
 
-                    startedMoving = startedMoving || 
-                    p.control(this, this.preventDir, event);
+                    startedMoving = p.control(this, this.preventDir, isFirst, event) ||
+                        startedMoving;
+
+                    if (startedMoving)
+                        isFirst = false;
                 }
             }
+
+            if (startedMoving)
+                stateChanged = true;
         }
         while(startedMoving);
 
@@ -417,6 +425,7 @@ export class Stage {
 
             p.checkConflict(this);
         }
+    
     }
 
 
