@@ -136,13 +136,13 @@ export class TitleScreen implements Scene  {
         if (this.phase == 1) {
 
             canvas.drawText(font, "PRESS ENTER", 
-                canvas.width/2, canvas.height-16,
+                canvas.width/2, canvas.height-18,
                 -3, 0, true, 1, 1, this.waveTimer,
                 2, Math.PI / 5);
         }
         else if (this.phase == 2) {
 
-            this.menu.draw(canvas, 8, canvas.height-18,
+            this.menu.draw(canvas, 8, canvas.height-22,
                 -3, 8);
         }
     }
