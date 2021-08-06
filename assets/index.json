@@ -21,6 +21,7 @@
         {"name": "undo", "path": "undo.wav"},
         {"name": "restart", "path": "restart.wav"},
         {"name": "start", "path": "start.wav"},
+        {"name": "jump", "path": "jump.wav"},
 
         {"name": "destroy", "path": "destroy.ogg"},
         {"name": "victory", "path": "victory.ogg"}

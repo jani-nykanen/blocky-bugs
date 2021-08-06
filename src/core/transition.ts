@@ -155,5 +155,11 @@ export class TransitionEffectManager {
 
 
     public isActive = () : boolean => this.active;
+
+    
+    public deactivate() {
+
+        this.active = false;
+    }
 }
 

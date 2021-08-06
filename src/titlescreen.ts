@@ -5,6 +5,7 @@ import { State } from "./core/types.js";
 import { RGBA, Vector2 } from "./core/vector.js";
 import { GameScene } from "./game.js";
 import { Menu, MenuButton } from "./menu.js";
+import { StoryIntro } from "./storyintro.js";
 
 
 const WAVE_TIME = 90;
@@ -77,7 +78,7 @@ export class TitleScreen implements Scene  {
             TransitionEffectType.CirleIn,
             1.0/30.0, event => {
 
-                event.changeScene(GameScene);
+                event.changeScene(this.startIndex == 1 ? StoryIntro : GameScene);
             })
             .setCenter(new Vector2(32, 32));
     }
