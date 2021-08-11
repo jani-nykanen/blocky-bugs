@@ -47,6 +47,7 @@ export class GameScene implements Scene {
                 new MenuButton("RESUME",
                     event => {
                         this.pauseMenu.deactivate();
+                        //event.audio.resumeMusic();
                     }),
 
                 new MenuButton("RESTART",
@@ -54,6 +55,8 @@ export class GameScene implements Scene {
 
                         this.pauseMenu.deactivate();
                         this.reset(event);
+
+                        //event.audio.resumeMusic();
                     }),
                 new MenuButton("QUIT",
                 event => {
@@ -70,6 +73,8 @@ export class GameScene implements Scene {
                     
                     this.yesNoMenu.deactivate();
                     this.pauseMenu.deactivate();
+
+                    event.audio.stopMusic();
 
                     event.transition.activate(true, 
                         TransitionEffectType.BoxVertical,
@@ -93,6 +98,9 @@ export class GameScene implements Scene {
             .setCenter(new Vector2(32, 32));
 
         this.isFinalStage = false;
+
+
+        // event.audio.fadeInMusic(event.getSample("theme"), 0.80, 1000);
     }   
 
     
@@ -185,6 +193,9 @@ export class GameScene implements Scene {
 
             event.audio.playSample(event.getSample("pause"), 0.80);
             this.pauseMenu.activate(0);
+
+           //  event.audio.pauseMusic();
+
             return;
         }
 
