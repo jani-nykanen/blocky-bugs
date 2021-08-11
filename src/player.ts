@@ -18,7 +18,6 @@ export class PlayerBlock {
     private moveDir : Vector2;
     private moveTimer : number;
     private moving : boolean;
-    private preventDir : Vector2;
 
     private dust : Array<Dust>;
     private dustTimer : number;
@@ -34,27 +33,7 @@ export class PlayerBlock {
         this.moving = false;
     
         this.dust = new Array<Dust> ();
-
-        this.preventDir = new Vector2();
     }
-
-
-    // What
-    private removePreventedDirection(stick : Vector2) {
-
-        const EPS = 0.1;
-
-        let sx = Math.abs(stick.x) > Math.abs(stick.y);
-        let sy = !sx;
-
-        if ((this.preventDir.y < -EPS && !(sy && stick.y < -EPS)) ||
-            (this.preventDir.y > EPS && !(sy && stick.y > EPS)) ||
-            (this.preventDir.x < -EPS && !(sx && stick.x < -EPS)) ||
-            (this.preventDir.x > EPS && !(sx && stick.x > EPS))) {
-
-            this.preventDir.zeros();
-        }
-    }   
 
 
     public control(stage : Stage, preventDir : Vector2, isFirst : boolean, event : CoreEvent) : boolean {
@@ -67,16 +46,8 @@ export class PlayerBlock {
         let diry = 0;
 
         let stick = event.input.getStick();
-        if (stick.length() < EPS) {
-            
-            this.preventDir.zeros();
+        if (stick.length() < EPS)
             return false;
-        }
-
-        if (this.preventDir.length() > EPS) {
-
-            this.removePreventedDirection(stick);
-        }
 
         let sx = Math.abs(stick.x) > Math.abs(stick.y);
         let sy = !sx;
@@ -148,11 +119,7 @@ export class PlayerBlock {
 
                 stage.setTile(this.pos.x, this.pos.y, 2);
 
-                if (ret == HitEvent.Stop) {
-
-                    this.preventDir = this.moveDir.clone();
-                }
-                else {
+                if (ret != HitEvent.Stop) {
 
                     event.audio.playSample(event.getSample("hit"), 1.00);
                 }

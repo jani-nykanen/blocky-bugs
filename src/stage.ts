@@ -787,7 +787,7 @@ export class Stage {
 
         let id = this.getTile(x, y, 0);
 
-        if (id == 4 || id == 5) {
+        if (id == 4 || id == 5 || id == 6) {
 
             this.preventDir = new Vector2(dirx, diry);
         }
