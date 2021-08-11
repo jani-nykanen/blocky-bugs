@@ -24,7 +24,8 @@
         {"name": "jump", "path": "jump.wav"},
 
         {"name": "destroy", "path": "destroy.ogg"},
-        {"name": "victory", "path": "victory.ogg"}
+        {"name": "victory", "path": "victory.ogg"},
+        {"name": "title", "path": "title.ogg"}
         
     ],
 

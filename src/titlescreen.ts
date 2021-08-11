@@ -50,10 +50,14 @@ export class TitleScreen implements Scene  {
         this.menu.activate(0);
 
         this.startIndex = 0;
+
+        event.audio.fadeInMusic(event.getSample("title"), 0.80, 1000);
     }
 
 
     private startGame(newGame : boolean, event : CoreEvent) {
+
+        event.audio.stopMusic();
 
         this.startIndex = 1;
         let num = -1;
@@ -78,7 +82,7 @@ export class TitleScreen implements Scene  {
             TransitionEffectType.CirleIn,
             1.0/30.0, event => {
 
-                event.changeScene(this.startIndex == 1 ? StoryIntro : GameScene);
+                event.changeScene(this.startIndex == 1 ? StoryIntro : GameScene); 
             })
             .setCenter(new Vector2(32, 32));
     }
